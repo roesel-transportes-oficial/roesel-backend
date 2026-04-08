@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from motoristas import router as motoristas_router
-from contratos import router as contratos_router
-from caminhoes import router as caminhoes_router
+from routers.motoristas import router as motoristas_router
+from routers.contratos import router as contratos_router
+from routers.caminhoes import router as caminhoes_router
 
 app = FastAPI()
 
