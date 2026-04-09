@@ -15,6 +15,11 @@ class Motorista(BaseModel):
     vencimento_cnh: Optional[date] = None
     vencimento_permissor: Optional[date] = None
     vencimento_toxicologico: Optional[date] = None
+    caminhao_id: Optional[UUID] = None
+    de_ferias: Optional[bool] = False
+    ferias_inicio: Optional[str] = None
+    ferias_fim: Optional[str] = None
+    substituto_id: Optional[UUID] = None
 
 class Contrato(BaseModel):
     id: Optional[UUID] = None
@@ -47,19 +52,7 @@ class Caminhao(BaseModel):
     modelo: Optional[str] = ""
     ano: Optional[str] = ""
     frota_id: Optional[UUID] = None
-    motorista_atual: Optional[str] = ""
-    status: Optional[str] = "rodando"
-    venc_licenca: Optional[date] = None
-    venc_tacografo: Optional[date] = None
-    venc_outros: Optional[date] = None
-    obs_documentos: Optional[str] = ""
-
-    class Caminhao(BaseModel):
-    id: Optional[UUID] = None
-    placa: str
-    modelo: Optional[str] = ""
-    ano: Optional[str] = ""
-    frota_id: Optional[UUID] = None
+    frota: Optional[str] = ""
     motorista_atual: Optional[str] = ""
     status: Optional[str] = "rodando"
     motivo_parado: Optional[str] = ""

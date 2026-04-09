@@ -18,12 +18,9 @@ def criar(c: Caminhao):
     data["placa"] = data["placa"].upper()
     if "frota_id" in data:
         data["frota_id"] = str(data["frota_id"])
-    if "venc_licenca" in data and data["venc_licenca"]:
-        data["venc_licenca"] = str(data["venc_licenca"])
-    if "venc_tacografo" in data and data["venc_tacografo"]:
-        data["venc_tacografo"] = str(data["venc_tacografo"])
-    if "venc_outros" in data and data["venc_outros"]:
-        data["venc_outros"] = str(data["venc_outros"])
+    for campo in ["venc_licenca", "venc_tacografo", "venc_outros"]:
+        if campo in data and data[campo]:
+            data[campo] = str(data[campo])
     return sb_post("caminhoes", data)
 
 @router.put("/{id}")
@@ -32,6 +29,7 @@ def atualizar(id: str, c: Caminhao):
         "placa": c.placa.upper() if c.placa else None,
         "modelo": c.modelo,
         "ano": c.ano,
+        "frota": c.frota,
         "motorista_atual": c.motorista_atual,
         "status": c.status,
         "motivo_parado": c.motivo_parado,
