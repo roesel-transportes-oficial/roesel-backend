@@ -17,7 +17,7 @@ def criar(m: Motorista):
     data = m.model_dump(exclude_none=True)
     data["id"] = str(uuid4())
     data["nome"] = data["nome"].upper()
-    for campo in ["vencimento_cnh", "vencimento_permissor", "vencimento_toxicologico"]:
+    for campo in ["vencimento_cnh", "vencimento_permissao", "vencimento_toxicologico", "vencimento_periodico"]:
         if campo in data and data[campo]:
             data[campo] = str(data[campo])
     if "caminhao_id" in data:
@@ -44,8 +44,9 @@ def atualizar(id: str, m: Motorista):
         "adiantamento": m.adiantamento,
         "dt_desligamento": str(m.dt_desligamento) if m.dt_desligamento else None,
         "vencimento_cnh": str(m.vencimento_cnh) if m.vencimento_cnh else None,
-        "vencimento_permissor": str(m.vencimento_permissor) if m.vencimento_permissor else None,
+        "vencimento_permissao": str(m.vencimento_permissao) if m.vencimento_permissao else None,
         "vencimento_toxicologico": str(m.vencimento_toxicologico) if m.vencimento_toxicologico else None,
+        "vencimento_periodico": str(m.vencimento_periodico) if m.vencimento_periodico else None,
         "caminhao_id": str(m.caminhao_id) if m.caminhao_id else None,
         "de_ferias": m.de_ferias,
         "ferias_inicio": m.ferias_inicio,
