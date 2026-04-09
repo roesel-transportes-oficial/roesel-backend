@@ -21,6 +21,8 @@ def criar(m: Motorista):
         data["vencimento_cnh"] = str(data["vencimento_cnh"])
     if "vencimento_permissor" in data and data["vencimento_permissor"]:
         data["vencimento_permissor"] = str(data["vencimento_permissor"])
+    if "vencimento_toxicologico" in data and data["vencimento_toxicologico"]:
+        data["vencimento_toxicologico"] = str(data["vencimento_toxicologico"])
     return sb_post("motoristas", data)
 
 @router.put("/{id}")
@@ -40,6 +42,7 @@ def atualizar(id: str, m: Motorista):
         "ativo": m.ativo,
         "vencimento_cnh": str(m.vencimento_cnh) if m.vencimento_cnh else None,
         "vencimento_permissor": str(m.vencimento_permissor) if m.vencimento_permissor else None,
+        "vencimento_toxicologico": str(m.vencimento_toxicologico) if m.vencimento_toxicologico else None,
     }
     
     result = sb_patch("motoristas", f"id=eq.{id}", data)

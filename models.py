@@ -12,6 +12,7 @@ class Motorista(BaseModel):
     ativo: Optional[bool] = True
     vencimento_cnh: Optional[date] = None
     vencimento_permissor: Optional[date] = None
+    vencimento_toxicologico: Optional[date] = None
 
 class Contrato(BaseModel):
     id: Optional[UUID] = None
