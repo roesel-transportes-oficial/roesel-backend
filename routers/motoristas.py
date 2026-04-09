@@ -17,13 +17,12 @@ def criar(m: Motorista):
     data = m.model_dump(exclude_none=True)
     data["id"] = str(uuid4())
     data["nome"] = data["nome"].upper()
-    for campo in ["vencimento_cnh", "vencimento_permissao", "vencimento_toxicologico", "vencimento_periodico"]:
+    for campo in ["vencimento_cnh", "vencimento_permisso", "vencimento_toxicologico", "vencimento_periodico"]:
         if campo in data and data[campo]:
             data[campo] = str(data[campo])
-    if "caminhao_id" in data:
-        data["caminhao_id"] = str(data["caminhao_id"])
-    if "substituto_id" in data:
-        data["substituto_id"] = str(data["substituto_id"])
+    for campo in ["caminhao_id", "caminhao_temp_id", "substituto_id"]:
+        if campo in data:
+            data[campo] = str(data[campo])
     return sb_post("motoristas", data)
 
 @router.put("/{id}")
@@ -48,6 +47,7 @@ def atualizar(id: str, m: Motorista):
         "vencimento_toxicologico": str(m.vencimento_toxicologico) if m.vencimento_toxicologico else None,
         "vencimento_periodico": str(m.vencimento_periodico) if m.vencimento_periodico else None,
         "caminhao_id": str(m.caminhao_id) if m.caminhao_id else None,
+        "caminhao_temp_id": str(m.caminhao_temp_id) if m.caminhao_temp_id else None,
         "de_ferias": m.de_ferias,
         "ferias_inicio": m.ferias_inicio,
         "ferias_fim": m.ferias_fim,

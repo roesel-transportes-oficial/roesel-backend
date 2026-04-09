@@ -17,6 +17,7 @@ class Motorista(BaseModel):
     vencimento_toxicologico: Optional[date] = None
     vencimento_periodico: Optional[date] = None
     caminhao_id: Optional[UUID] = None
+    caminhao_temp_id: Optional[UUID] = None
     de_ferias: Optional[bool] = False
     ferias_inicio: Optional[str] = None
     ferias_fim: Optional[str] = None
