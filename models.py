@@ -10,6 +10,8 @@ class Motorista(BaseModel):
     rg: Optional[str] = ""
     tipo: Optional[str] = "Com adiantamento"
     ativo: Optional[bool] = True
+    adiantamento: Optional[bool] = True
+    dt_desligamento: Optional[str] = None
     vencimento_cnh: Optional[date] = None
     vencimento_permissor: Optional[date] = None
     vencimento_toxicologico: Optional[date] = None

@@ -30,26 +30,28 @@ def atualizar(id: str, m: Motorista):
     existente = sb_get("motoristas", f"id=eq.{id}")
     if not existente:
         raise HTTPException(status_code=404, detail="Motorista não encontrado")
-    
+
     nome_antigo = existente[0]["nome"]
     nome_novo = m.nome.upper()
-    
+
     data = {
         "nome": nome_novo,
         "cpf": m.cpf,
         "rg": m.rg,
         "tipo": m.tipo,
         "ativo": m.ativo,
+        "adiantamento": m.adiantamento,
+        "dt_desligamento": str(m.dt_desligamento) if m.dt_desligamento else None,
         "vencimento_cnh": str(m.vencimento_cnh) if m.vencimento_cnh else None,
         "vencimento_permissor": str(m.vencimento_permissor) if m.vencimento_permissor else None,
         "vencimento_toxicologico": str(m.vencimento_toxicologico) if m.vencimento_toxicologico else None,
     }
-    
+
     result = sb_patch("motoristas", f"id=eq.{id}", data)
-    
+
     if nome_novo != nome_antigo:
         sb_patch("contratos", f"motorista=eq.{quote(nome_antigo)}", {"motorista": nome_novo})
-    
+
     return result
 
 @router.delete("/{id}")
