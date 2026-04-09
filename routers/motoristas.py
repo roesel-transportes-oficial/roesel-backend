@@ -44,7 +44,7 @@ def atualizar(id: str, m: Motorista):
         "adiantamento": m.adiantamento,
         "dt_desligamento": str(m.dt_desligamento) if m.dt_desligamento else None,
         "vencimento_cnh": str(m.vencimento_cnh) if m.vencimento_cnh else None,
-        "vencimento_permissao": str(m.vencimento_permissao) if m.vencimento_permissao else None,
+        "vencimento_permisso": str(m.vencimento_permisso) if m.vencimento_permisso else None,
         "vencimento_toxicologico": str(m.vencimento_toxicologico) if m.vencimento_toxicologico else None,
         "vencimento_periodico": str(m.vencimento_periodico) if m.vencimento_periodico else None,
         "caminhao_id": str(m.caminhao_id) if m.caminhao_id else None,

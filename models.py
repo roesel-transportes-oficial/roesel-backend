@@ -13,7 +13,7 @@ class Motorista(BaseModel):
     adiantamento: Optional[bool] = True
     dt_desligamento: Optional[str] = None
     vencimento_cnh: Optional[date] = None
-    vencimento_permissao: Optional[date] = None
+    vencimento_permisso: Optional[date] = None
     vencimento_toxicologico: Optional[date] = None
     vencimento_periodico: Optional[date] = None
     caminhao_id: Optional[UUID] = None
