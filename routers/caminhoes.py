@@ -29,10 +29,13 @@ def criar(c: Caminhao):
 @router.put("/{id}")
 def atualizar(id: str, c: Caminhao):
     data = {
+        "placa": c.placa.upper() if c.placa else None,
         "modelo": c.modelo,
         "ano": c.ano,
         "motorista_atual": c.motorista_atual,
         "status": c.status,
+        "motivo_parado": c.motivo_parado,
+        "dt_parado": c.dt_parado,
         "venc_licenca": str(c.venc_licenca) if c.venc_licenca else None,
         "venc_tacografo": str(c.venc_tacografo) if c.venc_tacografo else None,
         "venc_outros": str(c.venc_outros) if c.venc_outros else None,

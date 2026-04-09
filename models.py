@@ -53,3 +53,18 @@ class Caminhao(BaseModel):
     venc_tacografo: Optional[date] = None
     venc_outros: Optional[date] = None
     obs_documentos: Optional[str] = ""
+
+    class Caminhao(BaseModel):
+    id: Optional[UUID] = None
+    placa: str
+    modelo: Optional[str] = ""
+    ano: Optional[str] = ""
+    frota_id: Optional[UUID] = None
+    motorista_atual: Optional[str] = ""
+    status: Optional[str] = "rodando"
+    motivo_parado: Optional[str] = ""
+    dt_parado: Optional[str] = None
+    venc_licenca: Optional[date] = None
+    venc_tacografo: Optional[date] = None
+    venc_outros: Optional[date] = None
+    obs_documentos: Optional[str] = ""
