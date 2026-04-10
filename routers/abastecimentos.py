@@ -13,6 +13,9 @@ class Abastecimento(BaseModel):
     caminhao_placa: Optional[str] = ""
     motorista: Optional[str] = ""
     posto: Optional[str] = ""
+    cnpj_posto: Optional[str] = ""
+    estado: Optional[str] = ""
+    cidade: Optional[str] = ""
     litros_combustivel: Optional[float] = 0
     valor_litro_combustivel: Optional[float] = 0
     litros_arla: Optional[float] = 0
