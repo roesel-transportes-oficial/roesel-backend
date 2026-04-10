@@ -29,7 +29,42 @@ def listar(motorista: str = "", status: str = "", mes: int = 0, ano: int = 0):
 def criar(c: Contrato):
     data = c.model_dump(exclude_none=True)
     data["id"] = str(uuid4())
-    return sb_post("contratos", data)
+    result = sb_post("contratos", data)
+
+    # Gera comissão automaticamente
+    fat_bruto = c.fat_bruto or 0
+    comissao_total = round(fat_bruto * 0.10, 2)
+    comissao_carga = round(fat_bruto * 0.05, 2)
+    comissao_folha = round(fat_bruto * 0.05, 2)
+
+    mes = 0
+    ano = 0
+    if c.data:
+        try:
+            partes = c.data.split("-")
+            ano = int(partes[0])
+            mes = int(partes[1])
+        except:
+            pass
+
+    comissao = {
+        "id": str(uuid4()),
+        "contrato_id": data["id"],
+        "contrato": c.contrato,
+        "motorista": c.motorista,
+        "data": c.data,
+        "fat_bruto": fat_bruto,
+        "comissao_total": comissao_total,
+        "comissao_carga": comissao_carga,
+        "comissao_folha": comissao_folha,
+        "carga_paga": False,
+        "folha_paga": False,
+        "mes": mes,
+        "ano": ano,
+    }
+    sb_post("comissoes", comissao)
+
+    return result
 
 @router.put("/{id}")
 def atualizar(id: str, c: Contrato):
@@ -37,9 +72,25 @@ def atualizar(id: str, c: Contrato):
     result = sb_patch("contratos", f"id=eq.{id}", data)
     if not result:
         raise HTTPException(status_code=404, detail="Contrato não encontrado")
+
+    # Atualiza comissão se fat_bruto mudou
+    fat_bruto = c.fat_bruto or 0
+    comissao_total = round(fat_bruto * 0.10, 2)
+    comissao_carga = round(fat_bruto * 0.05, 2)
+    comissao_folha = round(fat_bruto * 0.05, 2)
+    sb_patch("comissoes", f"contrato_id=eq.{id}", {
+        "fat_bruto": fat_bruto,
+        "comissao_total": comissao_total,
+        "comissao_carga": comissao_carga,
+        "comissao_folha": comissao_folha,
+        "motorista": c.motorista,
+        "data": c.data,
+    })
+
     return result
 
 @router.delete("/{id}")
 def excluir(id: str):
     sb_delete("contratos", f"id=eq.{id}")
+    sb_delete("comissoes", f"contrato_id=eq.{id}")
     return {"ok": True}
