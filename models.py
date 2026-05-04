@@ -30,6 +30,7 @@ class Contrato(BaseModel):
     cliente_nome_completo: Optional[str] = ""
     cnpj: Optional[str] = ""
     placa: Optional[str] = ""
+    placa_carreta: Optional[str] = ""
     frota: Optional[str] = ""
     contrato: str
     data: Optional[str] = None
@@ -51,6 +52,7 @@ class Frota(BaseModel):
 class Caminhao(BaseModel):
     id: Optional[UUID] = None
     placa: str
+    placa_carreta: Optional[str] = ""
     modelo: Optional[str] = ""
     ano: Optional[str] = ""
     frota_id: Optional[UUID] = None
