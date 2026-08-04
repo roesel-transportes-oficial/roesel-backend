@@ -41,6 +41,12 @@ class Contrato(BaseModel):
     qtd_veiculos: Optional[int] = 0
     adiantamento_pago: Optional[bool] = False
     dt_pagamento: Optional[str] = None
+    # ✅ Novos campos: valor do adiantamento (calculado como 5% do frete
+    # para motoristas com "adiantamento" habilitado) e a data em que
+    # esse adiantamento foi/será pago — separado da data de pagamento
+    # do contrato em si.
+    valor_adiantamento: Optional[float] = 0.0
+    dt_pagamento_adiantamento: Optional[str] = None
     status: Optional[str] = "ABERTO"
     obs: Optional[str] = ""
 
