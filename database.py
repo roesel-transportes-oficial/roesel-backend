@@ -5,11 +5,27 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+# ✅ Trocado de SUPABASE_KEY (chave anônima — a mesma que o frontend usa)
+# pra SUPABASE_SERVICE_ROLE_KEY (chave secreta). Essa é a diferença que
+# dá privilégio real ao backend: com a service_role, o backend consegue
+# ignorar RLS e fazer o que precisar no banco — coisa que o frontend,
+# usando a chave anônima, nunca deveria conseguir fazer sozinho.
+#
+# ⚠️ Essa chave é SECRETA — nunca pode aparecer em código do frontend,
+# nem em variável NEXT_PUBLIC_*, nem em nenhum lugar que o navegador
+# consiga ver. Fica só aqui, no ambiente do backend na Vercel.
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+
+if not SUPABASE_SERVICE_ROLE_KEY:
+    raise RuntimeError(
+        "SUPABASE_SERVICE_ROLE_KEY não configurada nas variáveis de ambiente. "
+        "Pegue a chave 'service_role' em Supabase → Project Settings → API."
+    )
 
 HEADERS = {
-    "apikey": SUPABASE_KEY,
-    "Authorization": f"Bearer {SUPABASE_KEY}",
+    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
     "Content-Type": "application/json",
     "Prefer": "return=representation"
 }

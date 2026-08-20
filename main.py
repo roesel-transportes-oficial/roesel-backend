@@ -13,9 +13,22 @@ load_dotenv()
 
 app = FastAPI()
 
+# ✅ CORS restrito ao domínio real do frontend, em vez de "*" (qualquer
+# site). Com "*" antes, qualquer página na internet podia mandar
+# requisição pro seu backend a partir do navegador de alguém — não é
+# o buraco principal (a chave secreta nunca foi exposta), mas é uma
+# camada extra de proteção que não custa nada ter.
+#
+# ⚠️ Ajusta essa lista se o domínio do frontend for diferente, ou se
+# tiver mais de um ambiente (produção + preview da Vercel, por exemplo).
+ORIGENS_PERMITIDAS = [
+    "https://roesel-frontend.vercel.app",
+    "http://localhost:3000",  # pra testar localmente
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ORIGENS_PERMITIDAS,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,7 +42,7 @@ app.include_router(abastecimentos_router, prefix="/abastecimentos", tags=["abast
 ultimo_ping = {"timestamp": None}
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 
 @app.get("/")
@@ -42,8 +55,8 @@ def health_ping():
     try:
         url = f"{SUPABASE_URL}/rest/v1/motoristas?select=id&limit=1"
         headers = {
-            "apikey": SUPABASE_KEY,
-            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "apikey": SUPABASE_SERVICE_ROLE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
         }
         r = http_requests.get(url, headers=headers, timeout=10)
         db_status = "connected" if r.status_code == 200 else f"error:{r.status_code}"

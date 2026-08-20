@@ -1,12 +1,18 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from database import sb_get, sb_post, sb_patch, sb_delete
 from models import Contrato
+from auth import usuario_atual
 from uuid import uuid4
 
 router = APIRouter()
 
+# ✅ Depends(usuario_atual) em cada rota: antes de qualquer código aqui
+# dentro rodar, o FastAPI já checou se o token de login é válido. Se
+# não for, a requisição nem chega a entrar na função — o "porteiro"
+# barra na entrada com erro 401.
+
 @router.get("/")
-def listar(motorista: str = "", status: str = "", mes: int = 0, ano: int = 0):
+def listar(motorista: str = "", status: str = "", mes: int = 0, ano: int = 0, usuario: dict = Depends(usuario_atual)):
     params = "order=data.desc"
     if motorista:
         from urllib.parse import quote
@@ -26,7 +32,7 @@ def listar(motorista: str = "", status: str = "", mes: int = 0, ano: int = 0):
     return dados
 
 @router.post("/")
-def criar(c: Contrato):
+def criar(c: Contrato, usuario: dict = Depends(usuario_atual)):
     data = c.model_dump(exclude_none=True)
     data["id"] = str(uuid4())
     result = sb_post("contratos", data)
@@ -67,7 +73,7 @@ def criar(c: Contrato):
     return result
 
 @router.put("/{id}")
-def atualizar(id: str, c: Contrato):
+def atualizar(id: str, c: Contrato, usuario: dict = Depends(usuario_atual)):
     data = c.model_dump(exclude={"id"}, exclude_none=True)
     result = sb_patch("contratos", f"id=eq.{id}", data)
     if not result:
@@ -90,7 +96,7 @@ def atualizar(id: str, c: Contrato):
     return result
 
 @router.delete("/{id}")
-def excluir(id: str):
+def excluir(id: str, usuario: dict = Depends(usuario_atual)):
     sb_delete("contratos", f"id=eq.{id}")
     sb_delete("comissoes", f"contrato_id=eq.{id}")
     return {"ok": True}
