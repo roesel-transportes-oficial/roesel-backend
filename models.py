@@ -41,10 +41,6 @@ class Contrato(BaseModel):
     qtd_veiculos: Optional[int] = 0
     adiantamento_pago: Optional[bool] = False
     dt_pagamento: Optional[str] = None
-    # ✅ Novos campos: valor do adiantamento (calculado como 5% do frete
-    # para motoristas com "adiantamento" habilitado) e a data em que
-    # esse adiantamento foi/será pago — separado da data de pagamento
-    # do contrato em si.
     valor_adiantamento: Optional[float] = 0.0
     dt_pagamento_adiantamento: Optional[str] = None
     status: Optional[str] = "ABERTO"
@@ -71,3 +67,42 @@ class Caminhao(BaseModel):
     venc_tacografo: Optional[date] = None
     venc_outros: Optional[date] = None
     obs_documentos: Optional[str] = ""
+
+# ✅ Novo: modelo pra Contas a Pagar (Fase 2 da migração pro backend)
+class ContaPagar(BaseModel):
+    id: Optional[UUID] = None
+    descricao: Optional[str] = ""
+    fornecedor_nome: str
+    fornecedor_cnpj: Optional[str] = ""
+    valor: float
+    data_emissao: Optional[str] = None
+    data_vencimento: str
+    status: Optional[str] = "PENDENTE"
+    nota_fiscal_id: Optional[UUID] = None
+    nota_fiscal_chave: Optional[str] = ""
+    obs: Optional[str] = ""
+
+# ✅ Dados de uma NF-e já extraídos do XML pelo frontend (o parse do XML
+# em si continua no navegador — só a gravação no banco passa a ser
+# feita pelo backend, com autenticação e validação).
+class DadosNFe(BaseModel):
+    chave_acesso: str
+    numero_nf: Optional[str] = ""
+    serie: Optional[str] = ""
+    data_emissao: Optional[str] = None
+    emitente_cnpj: str
+    emitente_nome: str
+    emitente_fantasia: Optional[str] = ""
+    emitente_cidade: Optional[str] = ""
+    emitente_uf: Optional[str] = ""
+    valor_total: float
+    natureza_operacao: Optional[str] = ""
+    cfop: Optional[str] = ""
+    produtos: Optional[str] = ""
+    info_adicional: Optional[str] = ""
+
+class ImportarNFeRequest(BaseModel):
+    dados_nfe: DadosNFe
+    vencimento: str
+    obs: Optional[str] = ""
+    abastecimento_id: Optional[UUID] = None  # se um abastecimento foi identificado pra vincular

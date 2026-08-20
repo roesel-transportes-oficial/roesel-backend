@@ -8,6 +8,7 @@ from routers.motoristas import router as motoristas_router
 from routers.contratos import router as contratos_router
 from routers.caminhoes import router as caminhoes_router
 from routers.abastecimentos import router as abastecimentos_router
+from routers.contas_pagar import router as contas_pagar_router
 
 load_dotenv()
 
@@ -38,6 +39,7 @@ app.include_router(motoristas_router, prefix="/motoristas", tags=["motoristas"])
 app.include_router(contratos_router, prefix="/contratos", tags=["contratos"])
 app.include_router(caminhoes_router, prefix="/caminhoes", tags=["caminhoes"])
 app.include_router(abastecimentos_router, prefix="/abastecimentos", tags=["abastecimentos"])
+app.include_router(contas_pagar_router, prefix="/contas-pagar", tags=["contas_pagar"])
 
 ultimo_ping = {"timestamp": None}
 
