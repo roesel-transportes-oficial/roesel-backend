@@ -106,3 +106,56 @@ class ImportarNFeRequest(BaseModel):
     vencimento: str
     obs: Optional[str] = ""
     abastecimento_id: Optional[UUID] = None  # se um abastecimento foi identificado pra vincular
+
+# ✅ Fase 3 da migração: CT-e e Notas Fiscais (NFS-e / Devolução / Remessa)
+class Cte(BaseModel):
+    id: Optional[UUID] = None
+    tipo: str  # 'normal' | 'redespacho'
+    status: Optional[str] = "rascunho"
+    remetente_nome: Optional[str] = ""
+    remetente_cnpj: Optional[str] = ""
+    destinatario_nome: Optional[str] = ""
+    destinatario_cnpj: Optional[str] = ""
+    tomador_nome: Optional[str] = ""
+    tomador_cnpj: Optional[str] = ""
+    origem: Optional[str] = ""
+    destino: Optional[str] = ""
+    valor_prestacao: Optional[float] = 0.0
+    natureza_operacao: Optional[str] = ""
+    placa: Optional[str] = ""
+    motorista: Optional[str] = ""
+    cte_anterior_chave: Optional[str] = ""
+    redespachante_nome: Optional[str] = ""
+    redespachante_cnpj: Optional[str] = ""
+    chave_acesso: Optional[str] = ""
+    numero_cte: Optional[str] = ""
+    xml_url: Optional[str] = ""
+    dacte_url: Optional[str] = ""
+    motivo_rejeicao: Optional[str] = ""
+    obs: Optional[str] = ""
+
+class NotaDiversa(BaseModel):
+    id: Optional[UUID] = None
+    tipo: str  # 'nfse' | 'devolucao' | 'remessa'
+    status: Optional[str] = "rascunho"
+    destinatario_nome: Optional[str] = ""
+    destinatario_cnpj: Optional[str] = ""
+    valor: Optional[float] = 0.0
+    data_emissao: Optional[str] = None
+    obs: Optional[str] = ""
+    descricao_servico: Optional[str] = ""
+    aliquota_iss: Optional[float] = 0.0
+    iss_retido: Optional[bool] = False
+    nota_fiscal_original_chave: Optional[str] = ""
+    motivo_devolucao: Optional[str] = ""
+    natureza_remessa: Optional[str] = ""
+    produtos_descricao: Optional[str] = ""
+    placa: Optional[str] = ""
+    motorista: Optional[str] = ""
+    origem: Optional[str] = ""
+    destino: Optional[str] = ""
+    chave_acesso: Optional[str] = ""
+    numero_nota: Optional[str] = ""
+    xml_url: Optional[str] = ""
+    pdf_url: Optional[str] = ""
+    motivo_rejeicao: Optional[str] = ""
