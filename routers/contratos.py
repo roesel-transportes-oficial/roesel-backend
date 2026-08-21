@@ -3,6 +3,7 @@ from database import sb_get, sb_post, sb_patch, sb_delete
 from models import Contrato
 from auth import usuario_atual
 from uuid import uuid4
+import requests
 
 router = APIRouter()
 
@@ -31,11 +32,23 @@ def listar(motorista: str = "", status: str = "", mes: int = 0, ano: int = 0, us
         return filtrados
     return dados
 
+# ✅ Antes, se o sb_post falhasse (ex: coluna que não existe na tabela,
+# valor inválido, etc.), a exceção do requests (raise_for_status)
+# subia sem tratamento nenhum — o FastAPI então devolvia um
+# "Internal Server Error" genérico em texto puro, sem dizer o motivo
+# real. Isso quebrava o parse de JSON do lado do frontend (por isso o
+# erro "Unexpected token 'I'... is not valid JSON" — 'I' de "Internal").
+# Agora qualquer falha do Supabase vira um erro 400 com a mensagem
+# real do banco, sempre em JSON.
 @router.post("/")
 def criar(c: Contrato, usuario: dict = Depends(usuario_atual)):
     data = c.model_dump(exclude_none=True)
     data["id"] = str(uuid4())
-    result = sb_post("contratos", data)
+    try:
+        result = sb_post("contratos", data)
+    except requests.HTTPError as e:
+        detalhe = e.response.text if e.response is not None else str(e)
+        raise HTTPException(status_code=400, detail=f"Erro ao salvar contrato no banco: {detalhe}")
 
     # Gera comissão automaticamente
     fat_bruto = c.fat_bruto or 0
@@ -68,14 +81,28 @@ def criar(c: Contrato, usuario: dict = Depends(usuario_atual)):
         "mes": mes,
         "ano": ano,
     }
-    sb_post("comissoes", comissao)
+    try:
+        sb_post("comissoes", comissao)
+    except requests.HTTPError as e:
+        # O contrato já foi criado com sucesso nesse ponto — só a
+        # comissão falhou. Melhor avisar claramente do que fingir que
+        # deu tudo certo ou apagar o contrato já criado.
+        detalhe = e.response.text if e.response is not None else str(e)
+        raise HTTPException(
+            status_code=207,
+            detail=f"Contrato salvo, mas houve erro ao gerar a comissão automaticamente: {detalhe}"
+        )
 
     return result
 
 @router.put("/{id}")
 def atualizar(id: str, c: Contrato, usuario: dict = Depends(usuario_atual)):
     data = c.model_dump(exclude={"id"}, exclude_none=True)
-    result = sb_patch("contratos", f"id=eq.{id}", data)
+    try:
+        result = sb_patch("contratos", f"id=eq.{id}", data)
+    except requests.HTTPError as e:
+        detalhe = e.response.text if e.response is not None else str(e)
+        raise HTTPException(status_code=400, detail=f"Erro ao atualizar contrato: {detalhe}")
     if not result:
         raise HTTPException(status_code=404, detail="Contrato não encontrado")
 
@@ -84,14 +111,17 @@ def atualizar(id: str, c: Contrato, usuario: dict = Depends(usuario_atual)):
     comissao_total = round(fat_bruto * 0.10, 2)
     comissao_carga = round(fat_bruto * 0.05, 2)
     comissao_folha = round(fat_bruto * 0.05, 2)
-    sb_patch("comissoes", f"contrato_id=eq.{id}", {
-        "fat_bruto": fat_bruto,
-        "comissao_total": comissao_total,
-        "comissao_carga": comissao_carga,
-        "comissao_folha": comissao_folha,
-        "motorista": c.motorista,
-        "data": c.data,
-    })
+    try:
+        sb_patch("comissoes", f"contrato_id=eq.{id}", {
+            "fat_bruto": fat_bruto,
+            "comissao_total": comissao_total,
+            "comissao_carga": comissao_carga,
+            "comissao_folha": comissao_folha,
+            "motorista": c.motorista,
+            "data": c.data,
+        })
+    except requests.HTTPError:
+        pass  # comissão pode não existir ainda pra esse contrato — não é erro fatal aqui
 
     return result
 
