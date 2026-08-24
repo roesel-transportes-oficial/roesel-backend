@@ -1,33 +1,23 @@
 import os
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from mangum import Mangum
 import sys
 
+# ✅ ESSA ERA A CAUSA RAIZ DE TUDO: esse arquivo (api/index.py) é o que
+# a Vercel realmente executa (definido no vercel.json), mas ele tinha
+# sua PRÓPRIA cópia do app FastAPI — separada e desatualizada em
+# relação ao main.py. Toda vez que a gente atualizava main.py (novos
+# routers, validação de login, CORS restrito), nada disso ia pro ar,
+# porque a Vercel nunca rodava o main.py diretamente — só esse arquivo
+# aqui, que ficou parado no tempo com só 4 routers e SEM proteção de
+# login nenhuma.
+#
+# A correção: em vez de manter duas cópias do app (uma aqui, outra no
+# main.py) que podem divergir de novo no futuro, esse arquivo agora só
+# IMPORTA o app de verdade do main.py. Só existe uma fonte de verdade
+# a partir de agora — qualquer mudança em main.py já vale pra produção
+# automaticamente, sem precisar lembrar de duplicar em dois lugares.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from routers.motoristas import router as motoristas_router
-from routers.contratos import router as contratos_router
-from routers.caminhoes import router as caminhoes_router
-from routers.abastecimentos import router as abastecimentos_router
-
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.include_router(motoristas_router, prefix="/motoristas", tags=["motoristas"])
-app.include_router(contratos_router, prefix="/contratos", tags=["contratos"])
-app.include_router(caminhoes_router, prefix="/caminhoes", tags=["caminhoes"])
-app.include_router(abastecimentos_router, prefix="/abastecimentos", tags=["abastecimentos"])
-
-@app.get("/")
-def root():
-    return {"status": "ok"}
+from main import app
+from mangum import Mangum
 
 handler = Mangum(app)
