@@ -3,9 +3,22 @@ from database import sb_get, sb_post, sb_patch, sb_delete
 from models import Contrato
 from auth import usuario_atual
 from uuid import uuid4
-import traceback
 
 router = APIRouter()
+
+# ✅ Helper: monta a mensagem de erro com o corpo real da resposta do
+# Supabase, se existir. É onde o Postgrest explica o motivo verdadeiro
+# do erro (tipo "coluna não existe" ou "campo obrigatório faltando"),
+# que antes ficava escondido atrás de um "400 Bad Request" genérico.
+def erro_detalhado(e: Exception) -> str:
+    detalhe_resposta = ''
+    resposta_http = getattr(e, 'response', None)
+    if resposta_http is not None:
+        try:
+            detalhe_resposta = f" | Resposta do Supabase: {resposta_http.text}"
+        except Exception:
+            pass
+    return f"ERRO REAL: {type(e).__name__}: {str(e)}{detalhe_resposta}"
 
 @router.get("/")
 def listar(motorista: str = "", status: str = "", mes: int = 0, ano: int = 0, usuario: dict = Depends(usuario_atual)):
@@ -27,11 +40,6 @@ def listar(motorista: str = "", status: str = "", mes: int = 0, ano: int = 0, us
         return filtrados
     return dados
 
-# ✅ ÚLTIMA CAMADA DE PROTEÇÃO: um try/except em volta de TUDO, que
-# captura QUALQUER tipo de erro (não só falha do Supabase) e devolve
-# o texto real do erro Python na resposta. Isso existe especificamente
-# pra parar de precisar caçar log na Vercel — o erro verdadeiro agora
-# aparece direto na tela do navegador, na caixinha vermelha.
 @router.post("/")
 def criar(c: Contrato, usuario: dict = Depends(usuario_atual)):
     try:
@@ -75,10 +83,7 @@ def criar(c: Contrato, usuario: dict = Depends(usuario_atual)):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"ERRO REAL: {type(e).__name__}: {str(e)} | Traceback: {traceback.format_exc()[-1500:]}"
-        )
+        raise HTTPException(status_code=500, detail=erro_detalhado(e))
 
 @router.put("/{id}")
 def atualizar(id: str, c: Contrato, usuario: dict = Depends(usuario_atual)):
@@ -108,10 +113,7 @@ def atualizar(id: str, c: Contrato, usuario: dict = Depends(usuario_atual)):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"ERRO REAL: {type(e).__name__}: {str(e)} | Traceback: {traceback.format_exc()[-1500:]}"
-        )
+        raise HTTPException(status_code=500, detail=erro_detalhado(e))
 
 @router.delete("/{id}")
 def excluir(id: str, usuario: dict = Depends(usuario_atual)):
