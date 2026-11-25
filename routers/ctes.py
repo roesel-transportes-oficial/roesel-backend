@@ -46,6 +46,10 @@ def excluir(id: str, usuario: dict = Depends(usuario_atual)):
 from fiscal.certificado import CertificadoNaoConfigurado, info_certificado
 from fiscal.cte_emissao import ErroEmissao, consultar_cte, emitir_cte, status_sefaz
 from fiscal.supabase_fiscal import link_temporario
+from fiscal.cte_eventos import cancelar_cte, carta_correcao
+from fiscal.pdfs import link_dacte
+from pydantic import BaseModel
+from typing import Optional
 
 
 def _erro_fiscal(e: Exception):
@@ -94,7 +98,45 @@ def baixar_xml(id: str, usuario: dict = Depends(usuario_atual)):
     return {"url": link_temporario(linhas[0]["xml_url"])}
 
 
-# Cancelamento: próxima etapa (evento 110111, precisa montar o evento à mão).
+class Cancelamento(BaseModel):
+    justificativa: str
+
+
+class Correcao(BaseModel):
+    grupo: str
+    campo: str
+    valor: str
+    item: Optional[int] = None
+
+
+class CartaCorrecao(BaseModel):
+    correcoes: list[Correcao]
+
+
 @router.post("/{id}/cancelar")
-def cancelar(id: str, usuario: dict = Depends(usuario_atual)):
-    raise HTTPException(status_code=501, detail="Cancelamento de CT-e ainda em desenvolvimento.")
+def cancelar(id: str, c: Cancelamento, usuario: dict = Depends(usuario_atual)):
+    try:
+        return cancelar_cte(id, c.justificativa)
+    except Exception as e:
+        _erro_fiscal(e)
+
+
+@router.post("/{id}/carta-correcao")
+def corrigir(id: str, c: CartaCorrecao, usuario: dict = Depends(usuario_atual)):
+    try:
+        return carta_correcao(id, [x.model_dump() for x in c.correcoes])
+    except Exception as e:
+        _erro_fiscal(e)
+
+
+@router.get("/{id}/eventos")
+def eventos(id: str, usuario: dict = Depends(usuario_atual)):
+    return sb_get("fiscal_eventos", f"cte_id=eq.{id}&order=created_at.desc&select=*")
+
+
+@router.get("/{id}/dacte")
+def dacte(id: str, usuario: dict = Depends(usuario_atual)):
+    try:
+        return {"url": link_dacte(id)}
+    except Exception as e:
+        _erro_fiscal(e)

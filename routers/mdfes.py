@@ -11,6 +11,7 @@ from fiscal.certificado import CertificadoNaoConfigurado
 from fiscal.cte_emissao import ErroEmissao
 from fiscal.mdfe_emissao import cancelar_mdfe, consultar_mdfe, emitir_mdfe, encerrar_mdfe, nao_encerrados
 from fiscal.supabase_fiscal import link_temporario
+from fiscal.pdfs import link_damdfe
 
 router = APIRouter()
 
@@ -145,3 +146,11 @@ def baixar_xml(id: str, usuario: dict = Depends(usuario_atual)):
     if not linhas or not linhas[0].get("xml_url"):
         raise HTTPException(status_code=404, detail="XML ainda não disponível.")
     return {"url": link_temporario(linhas[0]["xml_url"])}
+
+
+@router.get("/{id}/damdfe")
+def damdfe(id: str, usuario: dict = Depends(usuario_atual)):
+    try:
+        return {"url": link_damdfe(id)}
+    except Exception as e:
+        _erro_fiscal(e)

@@ -16,6 +16,7 @@ from .cte_emissao import ErroEmissao, carregar_emitente
 from .cte_xml import COD_UF, FUSO_BRASILIA, so_digitos
 from .mdfe_xml import MODELO, ErroMdfe, montar_mdfe, municipio_encerramento
 from .modelos import DadosFiscaisMdfe
+from .sefaz_envio import enviar_mdfe
 from .supabase_fiscal import ambiente_atual, proximo_numero, salvar_arquivo
 
 NS = "http://www.portalfiscal.inf.br/mdfe"
@@ -102,7 +103,7 @@ def emitir_mdfe(mdfe_id: str) -> dict:
         raise ErroEmissao("O XML ficou fora do padrão da SEFAZ: " + "; ".join(erros)[:500])
 
     sb_patch("mdfes", f"id=eq.{mdfe_id}", {"status": "processando", "chave_acesso": chave})
-    ret = cliente_mdfe(emitente["uf"], amb).envia_documento(mdfe)
+    ret = enviar_mdfe(cliente_mdfe(emitente["uf"], amb), xml_assinado)
 
     prot = ret.protMDFe.infProt if ret.protMDFe and ret.protMDFe.infProt else None
     cstat = (prot.cStat if prot else None) or ret.cStat

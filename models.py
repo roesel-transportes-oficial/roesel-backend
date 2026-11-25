@@ -133,6 +133,8 @@ class Cte(BaseModel):
     dacte_url: Optional[str] = ""
     motivo_rejeicao: Optional[str] = ""
     obs: Optional[str] = ""
+    # Tudo que a SEFAZ exige (ver fiscal/modelos.py, DadosFiscaisCte)
+    dados_fiscais: Optional[dict] = None
 
 class NotaDiversa(BaseModel):
     id: Optional[UUID] = None

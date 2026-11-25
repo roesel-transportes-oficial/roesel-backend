@@ -4,4 +4,5 @@ requests==2.31.0
 python-dotenv==1.0.0
 pydantic==2.7.0
 uvicorn==0.29.0
-
+nfelib[sign,soap]==3.3.0
+brazilfiscalreport[dacte,damdfe]==1.4.0

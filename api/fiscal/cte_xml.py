@@ -199,7 +199,7 @@ def montar_cte(
             xNome=_texto(a.nome, 60),
             idDocAnt=[E.IdDocAnt(idDocAntEle=[E.IdDocAnt.IdDocAntEle(chCTe=so_digitos(c)) for c in a.chaves_cte])],
         )])
-    modal = N.InfModal(versaoModal=VERSAO, any_element=Rodo(RNTRC=so_digitos(emitente["rntrc"])))
+    modal = N.InfModal(versaoModal=VERSAO, any_element=Rodo(RNTRC=so_digitos(emitente["rntrc"]).zfill(8)[-8:]))
 
     # O CT-e não tem campo próprio de NCM: ele vai nas observações.
     ncms = sorted({p.ncm for p in dados.carga.produtos if p.ncm})
