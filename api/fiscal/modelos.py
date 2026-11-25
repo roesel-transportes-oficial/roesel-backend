@@ -127,3 +127,50 @@ class DadosFiscaisCte(BaseModel):
     seguro: Optional[Seguro] = None
     chaves_nfe: list[str] = Field(default_factory=list, description="Chaves das NF-e transportadas")
     observacoes: Optional[str] = None
+
+
+# ---------------------------------------------------------------- MDF-e
+# Quase tudo do MDF-e vem dos CT-es autorizados da viagem (cidades, carga,
+# NCM, seguro, contratante). Aqui fica só o que é da viagem em si.
+
+class Veiculo(BaseModel):
+    placa: str
+    renavam: Optional[str] = None
+    tara: int  # kg
+    cap_kg: Optional[int] = None
+    # 01 truck | 02 toco | 03 cavalo mecânico | 04 VAN | 05 utilitário | 06 outros
+    tp_rod: Literal["01", "02", "03", "04", "05", "06"] = "03"
+    # 00 não aplicável | 01 aberta | 02 fechada/baú | 03 granelera | 04 porta container | 05 sider
+    tp_car: Literal["00", "01", "02", "03", "04", "05"] = "00"
+    uf: str = "MG"
+
+
+class Reboque(BaseModel):
+    placa: str
+    renavam: Optional[str] = None
+    tara: int
+    cap_kg: int
+    tp_car: Literal["00", "01", "02", "03", "04", "05"] = "01"
+    uf: str = "MG"
+
+
+class Condutor(BaseModel):
+    nome: str
+    cpf: str
+
+
+class Ciot(BaseModel):
+    numero: str  # 12 dígitos
+    cnpj_cpf: str  # responsável pela geração (a Roesel, quando é ela que gera)
+
+
+class DadosFiscaisMdfe(BaseModel):
+    veiculo: Veiculo
+    reboques: list[Reboque] = []
+    condutores: list[Condutor] = Field(..., min_length=1)
+    percurso: list[str] = []  # UFs no caminho, sem a de início e a de fim
+    ciots: list[Ciot] = []
+    # 01 granel sólido | 02 granel líquido | 03 frigorificada | 04 conteinerizada
+    # 05 carga geral | 06 neogranel | 07-11 perigosas | 12 granel pressurizada
+    tipo_carga: str = "05"
+    observacoes: Optional[str] = None
