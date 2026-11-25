@@ -20,6 +20,8 @@ from routers.caminhoes import router as caminhoes_router
 from routers.abastecimentos import router as abastecimentos_router
 from routers.contas_pagar import router as contas_pagar_router
 from routers.ctes import router as ctes_router
+from routers.mdfes import router as mdfes_router
+from routers.gnres import router as gnres_router
 from routers.notas_diversas import router as notas_diversas_router
 
 app = FastAPI()
@@ -29,6 +31,7 @@ app = FastAPI()
 # verdade até agora).
 ORIGENS_PERMITIDAS = [
     "https://roesel-frontend.vercel.app",
+    "https://roesel-homologacao.vercel.app",
     "http://localhost:3000",
 ]
 
@@ -46,7 +49,29 @@ app.include_router(caminhoes_router, prefix="/caminhoes", tags=["caminhoes"])
 app.include_router(abastecimentos_router, prefix="/abastecimentos", tags=["abastecimentos"])
 app.include_router(contas_pagar_router, prefix="/contas-pagar", tags=["contas_pagar"])
 app.include_router(ctes_router, prefix="/ctes", tags=["ctes"])
+app.include_router(mdfes_router, prefix="/mdfes", tags=["mdfes"])
+app.include_router(gnres_router, prefix="/gnres", tags=["gnres"])
 app.include_router(notas_diversas_router, prefix="/notas-diversas", tags=["notas_diversas"])
+
+# Qualquer erro não tratado volta como JSON com o motivo, em vez de um
+# "Internal Server Error" sem explicação. Ajuda a achar tabela faltando etc.
+from fastapi import Request
+from fastapi.responses import JSONResponse
+import requests as _requests
+
+
+@app.exception_handler(Exception)
+async def erro_geral(request: Request, exc: Exception):
+    if type(exc).__name__ in ("ErroEmissao", "CertificadoNaoConfigurado", "ErroGnre", "ErroMdfe"):
+        return JSONResponse(status_code=400, content={"detail": str(exc)})
+    if isinstance(exc, _requests.HTTPError) and exc.response is not None:
+        corpo = exc.response.text[:400]
+        dica = ""
+        if "does not exist" in corpo or "PGRST205" in corpo or "Could not find the table" in corpo:
+            dica = " -> Falta criar a tabela no Supabase: rode o arquivo .sql correspondente no SQL Editor."
+        return JSONResponse(status_code=500, content={"detail": f"Erro no Supabase ({exc.response.status_code}): {corpo}{dica}"})
+    return JSONResponse(status_code=500, content={"detail": f"{type(exc).__name__}: {exc}"})
+
 
 @app.get("/")
 def root():
