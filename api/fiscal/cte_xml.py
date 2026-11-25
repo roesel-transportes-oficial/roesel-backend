@@ -203,7 +203,18 @@ def montar_cte(
 
     # O CT-e não tem campo próprio de NCM: ele vai nas observações.
     ncms = sorted({p.ncm for p in dados.carga.produtos if p.ncm})
-    obs = " ".join(x for x in [dados.observacoes or "", ("NCM: " + ", ".join(ncms)) if ncms else ""] if x)
+    seg = ""
+    if dados.seguro:
+        sg = dados.seguro
+        resp = "TRANSPORTADORA" if sg.responsavel == 1 else "CONTRATANTE"
+        seg = f"SEGURO: {sg.seguradora}"
+        if sg.seguradora_cnpj:
+            seg += f" CNPJ {so_digitos(sg.seguradora_cnpj)}"
+        seg += f" APOLICE {sg.apolice}"
+        if sg.averbacoes:
+            seg += " AVERBACAO " + ", ".join(sg.averbacoes)
+        seg += f" RESP. {resp}"
+    obs = " ".join(x for x in [dados.observacoes or "", ("NCM: " + ", ".join(ncms)) if ncms else "", seg] if x)
 
     inf = I(
         versao=VERSAO, Id=f"CTe{chave}",

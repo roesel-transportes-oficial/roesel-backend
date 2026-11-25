@@ -91,6 +91,18 @@ class DocAnterior(BaseModel):
     chaves_cte: list[str]
 
 
+class Seguro(BaseModel):
+    """Seguro da carga. O CT-e 4.00 não tem grupo próprio: vai nas observações.
+    O MDF-e usa estes mesmos dados no grupo <seg>."""
+    # 1 emitente do MDF-e (a própria transportadora) | 2 contratante do serviço
+    responsavel: Literal[1, 2] = 1
+    responsavel_cnpj: Optional[str] = None  # só quando responsavel = 2
+    seguradora: str
+    seguradora_cnpj: Optional[str] = None
+    apolice: str
+    averbacoes: list[str] = []
+
+
 class DadosFiscaisCte(BaseModel):
     # 0 normal | 1 subcontratação | 2 redespacho
     tipo_servico: Literal[0, 1, 2] = 0
@@ -112,5 +124,6 @@ class DadosFiscaisCte(BaseModel):
     icms: Icms
     ibscbs: Optional[IbsCbs] = None
     carga: Carga
+    seguro: Optional[Seguro] = None
     chaves_nfe: list[str] = Field(default_factory=list, description="Chaves das NF-e transportadas")
     observacoes: Optional[str] = None
