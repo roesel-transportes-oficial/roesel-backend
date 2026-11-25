@@ -26,7 +26,11 @@ def criar(c: Cte, usuario: dict = Depends(usuario_atual)):
 
 @router.put("/{id}")
 def atualizar(id: str, c: Cte, usuario: dict = Depends(usuario_atual)):
-    data = c.model_dump(exclude={"id"}, exclude_none=True)
+    # exclude_unset: só grava o que a tela mandou. Antes, os campos com
+    # valor padrão ("" / "rascunho") apagavam número, chave e status do CT-e.
+    data = c.model_dump(exclude={"id"}, exclude_unset=True, exclude_none=True)
+    for campo in ("status", "numero_cte", "chave_acesso", "protocolo", "xml_url"):
+        data.pop(campo, None)  # esses só o próprio backend muda, na emissão
     resultado = sb_patch("ctes", f"id=eq.{id}", data)
     if not resultado:
         raise HTTPException(status_code=404, detail="CT-e não encontrado")
@@ -37,14 +41,60 @@ def excluir(id: str, usuario: dict = Depends(usuario_atual)):
     sb_delete("ctes", f"id=eq.{id}")
     return {"ok": True}
 
-# ⚠️ Emissão real (integração com a SEFAZ via provedor) ainda não está
-# implementada — falta o token do provedor. Quando o token existir, a
-# chamada real pro provedor entra aqui, dentro do backend, nunca no
-# frontend — assim a lógica fiscal fica centralizada e protegida.
+# Emissão direta na SEFAZ (sem provedor pago). A lógica fica em fiscal/.
+# O ambiente (homologação ou produção) vem da variável FISCAL_AMBIENTE.
+from fiscal.certificado import CertificadoNaoConfigurado, info_certificado
+from fiscal.cte_emissao import ErroEmissao, consultar_cte, emitir_cte, status_sefaz
+from fiscal.supabase_fiscal import link_temporario
+
+
+def _erro_fiscal(e: Exception):
+    if isinstance(e, (ErroEmissao, CertificadoNaoConfigurado)):
+        raise HTTPException(status_code=400, detail=str(e))
+    raise HTTPException(status_code=502, detail=f"Falha ao falar com a SEFAZ: {type(e).__name__}: {e}")
+
+
+@router.get("/fiscal/status-sefaz")
+def sefaz_status(usuario: dict = Depends(usuario_atual)):
+    try:
+        return status_sefaz()
+    except Exception as e:
+        _erro_fiscal(e)
+
+
+@router.get("/fiscal/certificado")
+def certificado(usuario: dict = Depends(usuario_atual)):
+    try:
+        return info_certificado()
+    except Exception as e:
+        _erro_fiscal(e)
+
+
 @router.post("/{id}/emitir")
 def emitir(id: str, usuario: dict = Depends(usuario_atual)):
-    raise HTTPException(status_code=501, detail="Emissão de CT-e ainda não configurada — falta o token do provedor.")
+    try:
+        return emitir_cte(id)
+    except Exception as e:
+        _erro_fiscal(e)
 
+
+@router.post("/{id}/consultar")
+def consultar(id: str, usuario: dict = Depends(usuario_atual)):
+    try:
+        return consultar_cte(id)
+    except Exception as e:
+        _erro_fiscal(e)
+
+
+@router.get("/{id}/xml")
+def baixar_xml(id: str, usuario: dict = Depends(usuario_atual)):
+    linhas = sb_get("ctes", f"id=eq.{id}&select=xml_url")
+    if not linhas or not linhas[0].get("xml_url"):
+        raise HTTPException(status_code=404, detail="XML ainda não disponível.")
+    return {"url": link_temporario(linhas[0]["xml_url"])}
+
+
+# Cancelamento: próxima etapa (evento 110111, precisa montar o evento à mão).
 @router.post("/{id}/cancelar")
 def cancelar(id: str, usuario: dict = Depends(usuario_atual)):
-    raise HTTPException(status_code=501, detail="Cancelamento de CT-e ainda não configurado — falta o token do provedor.")
+    raise HTTPException(status_code=501, detail="Cancelamento de CT-e ainda em desenvolvimento.")
